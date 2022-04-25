@@ -38,6 +38,8 @@ END.
 /* EN ESTE CASO NOS MUESTRA UNA VENTANA DE INFORMACION DE QUE NO EXISTE LA CIUDAD*/
 
 //este es lo mismo solo que ponemos IF NOT AVAIL que quiere decir si no esta disponible
+//NO-LOCK accedemos al regitro solo para consultar
+//NO SE PUEDE MODIFICAR DATOS CON NO-LOCK
 FIND FIRST customer WHERE customer.city = 'oslos' NO-LOCK NO-ERROR.//NOSOTROS PODEMOS MODIFICAR LOS DATOS A TRAVES DE LOS COMANDO, PERO CON NO-LOCK LO QUE HACEMOS ES SACARNOS ESA PELIGROSIDAD!!! OSEA QUE NO PODEMOS TENER ESE ACCESO DE CAMBIAR LA INFORMACION DE LA BASE DE DATOS
 IF NOT AVAIL customer THEN
 DO:
@@ -46,5 +48,31 @@ DO:
 END.
 
 DISPLAY customer.city.
+
+//EXCLUSIVE-LOCK
+//estamos diciendo que solo ami me permita editar los datos de la base de datos
+FIND FIRST customer WHERE customer.city = 'oslos' EXCLUSIVE-LOCK NO-ERROR.//NOSOTROS PODEMOS MODIFICAR LOS DATOS A TRAVES DE LOS COMANDO, PERO CON NO-LOCK LO QUE HACEMOS ES SACARNOS ESA PELIGROSIDAD!!! OSEA QUE NO PODEMOS TENER ESE ACCESO DE CAMBIAR LA INFORMACION DE LA BASE DE DATOS
+IF NOT AVAIL customer THEN
+DO:
+    MESSAGE 'No existe esa ciudad' VIEW-AS ALERT-BOX INFORMATION BUTTONS OK.
+    RETURN.//con este decimos que no siga para abajo
+END.
+
+DISPLAY customer.city.
+
+//RELEASE
+FIND FIRST customer WHERE customer.city = 'oslo' EXCLUSIVE-LOCK NO-ERROR.
+IF NOT AVAIL customer THEN
+DO:
+    MESSAGE 'No existe esa ciudad' VIEW-AS ALERT-BOX INFORMATION BUTTONS OK.
+    RETURN.
+END.
+
+customer.city = "Quilmes". //modificamos oslo por quilmes, este cambio nos permitio hacer EXCLUSIVE-LOCK
+
+DISPLAY customer.city.
+
+RELEASE customer. //hacemos el commit de la modificaciones
+
 /**************************************************************************************************************/
 
